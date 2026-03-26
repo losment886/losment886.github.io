@@ -5,23 +5,22 @@
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../res/main.css" />
     <link rel="icon" type="image/png" href="../res/logo_alpha.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <title>lofusoft - About</title>
 </head>
 <body>
-    <header class="header">
-        <div style="display:flex;">
-            <div style=" padding: 5px 0 0px 0;"><img src="../res/logo_alpha.png" style="width: 30px; height: 30px;" onclick="window.location.href = './index.html';" /></div>
-            <div onclick="window.location.href = './index.html';">lofusoft</div>
-            <div style="padding:0 0 0px 50px" onclick="window.location.href = './products.html';">Products</div>
-            <div style="padding:0 0 0px 20px" onclick="window.location.href = './about.html';">About</div>
-        </div>
-        <div style="margin-left: auto; padding: 0 0 0 20px;" onclick="localStorage.setItem('chosenLanguage','en'); window.location.href = '../index.html?herf=about';">EN</div>
-    </header>
-    <h1 style="align-items: center; text-align: center;">关于 lofusoft</h1>
-    <h2 style="align-items: center; text-align: center;">空无一物</h2>
-    <footer class="footer">
-        <div>lofusoft &copy; 2026</div><div style="display:flex;"><div style="padding:0 15px">Powered by losment</div></div>
-    </footer>
+    
+    <div id="header"></div>
+    <main class="content">
+        <h1 style="align-items: center; text-align: center;">关于 lofusoft</h1>
+        <h2 style="align-items: center; text-align: center;">个人工作室，成立于2025，由losment全权所有</h2>
+        <h2 style="align-items: center; text-align: center;">主要为软件，游戏开发，也可能有其他产物</h2>
+        <h2 style="align-items: center; text-align: center;">网站不定期更新，后续会更改这远古UI</h2>
+        <h3 style="align-items: center; text-align: center;">联系我们：<a href="mailto:lofusoft@lofusoft.top" class="extra-link">lofusoft@lofusoft.top</a></h3>
+
+    </main>
+    <div id="footer"></div>
+    <script src="../res/general.js"></script>
 </body>
 
 </html>

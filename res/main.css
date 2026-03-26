@@ -5,7 +5,7 @@
 }
 
 .header {
-    line-height: 45px;
+    #line-height: 45px;
     position: absolute;
     top: 0px;
     white-space: none;
@@ -16,11 +16,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: rgba(31, 31, 31, 0.6);
 }
 
+
 .footer {
-    line-height: 30px;
-    position: absolute;
+    #line-height: 30px;
+    #position: absolute;
     bottom: 0px;
     width: 100%;
     white-space: break-spaces;
@@ -34,4 +37,9 @@
 
 body {
     padding: 55px 0px 40px;
+}
+
+.content
+{
+    flex: 1;
 }
