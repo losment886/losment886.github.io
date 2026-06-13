@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索主页</title>
+    <style>
+        :root {
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --glass-bg: rgba(255, 255, 255, 0.18);
+            --glass-border: rgba(255, 255, 255, 0.35);
+            --accent: #0071e3;
+            --accent-soft: rgba(0, 113, 227, 0.15);
+            --bg-image: none;
+            --bg-size: cover;
+            --bg-repeat: no-repeat;
+            --bg-position: center;
+            --bg-blur: 0px;
+            --bg-brightness: 1;
+            --text-shadow: none;
+            --transition-spring: cubic-bezier(0.25, 0.1, 0.1, 1.3);
+            --transition-ease-out-spring: cubic-bezier(0.16, 1.2, 0.45, 1.1);
+            --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1a1a2e;
+            transition: background 0.8s ease;
+        }
+
+        #webgl-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.6s ease;
+        }
+
+        #bg-image-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            background-image: var(--bg-image);
+            background-size: var(--bg-size);
+            background-repeat: var(--bg-repeat);
+            background-position: var(--bg-position);
+            filter: blur(var(--bg-blur)) brightness(var(--bg-brightness));
+            transition: filter 0.5s var(--transition-ease-out-spring), opacity 0.6s ease;
+            opacity: 0;
+        }
+        #bg-image-layer.visible {
+            opacity: 1;
+        }
+
+        #main-container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 720px;
+            padding: 0 24px;
+            transform: translateY(-6vh);
+        }
+
+        .search-card {
+            position: relative;
+            width: 100%;
+            max-width: 620px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px 10px 22px;
+            border-radius: 28px;
+            cursor: text;
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(5px) saturate(150%) brightness(1.08);
+            -webkit-backdrop-filter: blur(5px) saturate(150%) brightness(1.08);
+            border: 1.5px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+            transform: translateY(0) scale(1);
+            transition: all 0.45s var(--transition-ease-out-spring);
+        }
+
+        .search-card:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+            border-color: rgba(255, 255, 255, 0.45);
+        }
+
+        .search-card:focus-within {
+            transform: translateY(-3px) scale(1.015);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
+            border-color: rgba(255, 255, 255, 0.55);
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 17px;
+            font-weight: 450;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+            caret-color: var(--accent);
+            z-index: 2;
+            position: relative;
+            min-width: 0;
+            padding: 6px 0;
+            transition: color 0.5s ease;
+            text-shadow: var(--text-shadow);
+        }
+        .search-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+            font-weight: 400;
+            letter-spacing: -0.005em;
+            transition: color 0.5s ease;
+        }
+
+        .search-btn {
+            position: relative;
+            z-index: 2;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(18px) saturate(180%);
+            -webkit-backdrop-filter: blur(18px) saturate(180%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            transition: all 0.35s var(--transition-bounce);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .search-btn:hover {
+            transform: scale(1.08);
+            background: rgba(255, 255, 255, 0.28);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+        .search-btn:active {
+            transform: scale(0.92);
+            transition: all 0.1s ease;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+        .search-btn svg {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.3s ease;
+            opacity: 0.8;
+        }
+        .search-btn:hover svg {
+            transform: rotate(-8deg) scale(1.1);
+            opacity: 1;
+        }
+
+        #settings-toggle {
+            position: fixed;
+            top: 28px;
+            right: 28px;
+            z-index: 110;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px) saturate(170%);
+            -webkit-backdrop-filter: blur(20px) saturate(170%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            transition: all 0.35s var(--transition-bounce);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #settings-toggle:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        #settings-toggle:active {
+            transform: scale(0.88) rotate(-5deg);
+            transition: all 0.1s ease;
+        }
+        #settings-toggle svg {
+            width: 20px;
+            height: 20px;
+            transition: all 0.35s ease;
+            opacity: 0.8;
+        }
+        #settings-toggle:hover svg {
+            opacity: 1;
+        }
+        #settings-toggle.active {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.55);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        #settings-panel {
+            position: fixed;
+            top: 80px;
+            right: 28px;
+            z-index: 105;
+            width: 320px;
+            max-width: calc(100vw - 40px);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(35px) saturate(200%);
+            -webkit-backdrop-filter: blur(35px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+            padding: 24px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            color: var(--text-primary);
+            transform-origin: top right;
+            transform: scale(0);
+            opacity: 0;
+            transition: transform 0.4s var(--transition-ease-out-spring), opacity 0.3s ease;
+            pointer-events: none;
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
+        }
+        #settings-panel.open {
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #settings-panel h2 {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-bottom: 2px;
+            text-shadow: var(--text-shadow);
+        }
+        #settings-panel label {
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 2px;
+            display: block;
+            transition: color 0.5s ease;
+        }
+        #settings-panel .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        #settings-panel input[type="text"],
+        #settings-panel input[type="url"],
+        #settings-panel select {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            font-size: 13px;
+            font-family: inherit;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.3s ease;
+            text-shadow: var(--text-shadow);
+            width: 100%;
+        }
+        #settings-panel input:focus,
+        #settings-panel select:focus {
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 0 3px rgba(120, 160, 255, 0.2);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        #settings-panel select {
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236e6e73' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+        #settings-panel .btn-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        #settings-panel button {
+            padding: 8px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: inherit;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text-primary);
+            transition: all 0.25s var(--transition-bounce);
+            text-shadow: var(--text-shadow);
+            outline: none;
+            white-space: nowrap;
+        }
+        #settings-panel button:hover {
+            transform: translateY(-1px) scale(1.02);
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        #settings-panel button:active {
+            transform: scale(0.95);
+            transition: all 0.1s ease;
+        }
+        #settings-panel button.primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: transparent;
+            font-weight: 550;
+            box-shadow: 0 2px 8px rgba(0,113,227,0.25);
+        }
+        #settings-panel button.primary:hover {
+            background: #0077ed;
+            box-shadow: 0 4px 16px rgba(0,113,227,0.35);
+        }
+        #settings-panel button.danger {
+            background: rgba(255, 69, 58, 0.2);
+            border-color: rgba(255, 69, 58, 0.4);
+            color: #ff453a;
+        }
+        #settings-panel button.danger:hover {
+            background: rgba(255, 69, 58, 0.3);
+        }
+        #settings-panel input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            cursor: pointer;
+        }
+        #settings-panel input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            transition: all 0.25s var(--transition-bounce);
+        }
+        #settings-panel .range-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: var(--text-secondary);
+            padding: 0 2px;
+        }
+
+        #bg-file-input {
+            display: none;
+        }
+
+        #overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        #overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            z-index: 200;
+            padding: 10px 22px;
+            border-radius: 18px;
+            background: rgba(40, 40, 44, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #f5f5f7;
+            font-size: 13px;
+            font-weight: 500;
+            pointer-events: none;
+            transition: transform 0.5s var(--transition-ease-out-spring);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 600px) {
+            .search-card {
+                padding: 8px 10px 8px 16px;
+                border-radius: 22px;
+                gap: 6px;
+            }
+            .search-input {
+                font-size: 15px;
+            }
+            .search-btn {
+                width: 36px;
+                height: 36px;
+            }
+            .search-btn svg {
+                width: 15px;
+                height: 15px;
+            }
+            #settings-toggle {
+                top: 16px;
+                right: 14px;
+                width: 38px;
+                height: 38px;
+            }
+            #settings-panel {
+                top: 66px;
+                right: 10px;
+                width: 290px;
+                max-width: calc(100vw - 20px);
+                padding: 20px 16px 16px;
+            }
+            #main-container {
+                padding: 0 16px;
+                transform: translateY(-4vh);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="webgl-bg"></canvas>
+    <div id="bg-image-layer"></div>
+    <div id="overlay"></div>
+
+    <button id="settings-toggle" aria-label="设置" title="设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+    </button>
+
+    <div id="settings-panel">
+        <h2>设置</h2>
+
+        <div class="setting-group">
+            <label>搜索引擎</label>
+            <select id="search-engine-select">
+                <option value="https://www.google.com/search?q=">Google</option>
+                <option value="https://www.bing.com/search?q=">Bing</option>
+                <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+                <option value="https://www.baidu.com/s?wd=">百度</option>
+                <option value="custom">自定义...</option>
+            </select>
+        </div>
+
+        <div class="setting-group" id="custom-url-group" style="display:none;">
+            <label>自定义搜索基地址</label>
+            <input type="url" id="custom-search-url" placeholder="https://example.com/search?q=">
+            <span style="font-size:10px;color:var(--text-secondary);">使用 <code>{q}</code> 或直接拼接查询词</span>
+        </div>
+
+        <div class="setting-group">
+            <label>背景图像</label>
+            <div class="btn-row">
+                <button id="bg-browse-btn">浏览本地图片</button>
+                <button id="bg-clear-btn" class="danger">清除背景</button>
+            </div>
+            <input type="file" id="bg-file-input" accept="image/*">
+        </div>
+
+        <div class="setting-group">
+            <label>图像排布方式</label>
+            <select id="bg-size-select">
+                <option value="cover">填充 (Cover)</option>
+                <option value="contain">适应 (Contain)</option>
+                <option value="stretch">拉伸 (Stretch)</option>
+                <option value="tile">平铺 (Tile)</option>
+                <option value="center">居中 (Center)</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <label>背景模糊度: <span id="blur-value-label">0px</span></label>
+            <input type="range" id="bg-blur-slider" min="0" max="50" value="0" step="1">
+            <div class="range-labels"><span>清晰</span><span>柔和</span><span>梦幻</span></div>
+        </div>
+
+        <div class="setting-group">
+            <label>背景亮度</label>
+            <input type="range" id="bg-brightness-slider" min="0.3" max="2" value="1" step="0.05">
+            <div class="range-labels"><span>暗</span><span>正常</span><span>亮</span></div>
+        </div>
+
+        <button id="settings-close-btn" class="primary" style="margin-top:4px;">完成</button>
+    </div>
+
+    <div id="main-container">
+        <div class="search-card" id="search-card">
+            <input type="text" class="search-input" id="search-input" placeholder="搜索或输入网址..." autocomplete="off" spellcheck="false">
+            <button class="search-btn" id="search-btn" aria-label="搜索" title="搜索">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        (function() {
+           
+            // ============ DOM 元素 ============
+            const searchCard = document.getElementById('search-card');
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            const settingsToggle = document.getElementById('settings-toggle');
+            const settingsPanel = document.getElementById('settings-panel');
+            const overlay = document.getElementById('overlay');
+            const toast = document.getElementById('toast');
+            const bgImageLayer = document.getElementById('bg-image-layer');
+            const webglCanvas = document.getElementById('webgl-bg');
+            const bgFileInput = document.getElementById('bg-file-input');
+            const bgBrowseBtn = document.getElementById('bg-browse-btn');
+            const bgClearBtn = document.getElementById('bg-clear-btn');
+            const searchEngineSelect = document.getElementById('search-engine-select');
+            const customUrlGroup = document.getElementById('custom-url-group');
+            const customSearchUrl = document.getElementById('custom-search-url');
+            const bgSizeSelect = document.getElementById('bg-size-select');
+            const bgBlurSlider = document.getElementById('bg-blur-slider');
+            const bgBrightnessSlider = document.getElementById('bg-brightness-slider');
+            const blurValueLabel = document.getElementById('blur-value-label');
+            const settingsCloseBtn = document.getElementById('settings-close-btn');
+
+            // ============ 状态 ============
+            let settingsOpen = false;
+            let searchBaseUrl = 'https://www.google.com/search?q=';
+            let bgImageDataUrl = null;
+            let bgSize = 'cover';
+            let bgRepeat = 'no-repeat';
+            let bgPosition = 'center';
+            let bgBlur = 0;
+            let bgBrightness = 1;
+            let averageBgBrightness = 0.5;
+
+            // ============ IndexedDB 图片存储 ============
+            const DB_NAME = 'LiquidGlassHome';
+            const DB_VERSION = 1;
+            const STORE_NAME = 'backgrounds';
+            const IMAGE_KEY = 'userBg';
+
+
+            // ============ 解析传入参数 ============
+            const urlParams = new URLSearchParams(window.location.search);
+            const quesParam = urlParams.get('q');// lofusoft.top/search?q=
+            if(quesParam)
+            {
+                const hasBg = loadSettings();
+                const presetUrls = [
+                    'https://www.google.com/search?q=',
+                    'https://www.bing.com/search?q=',
+                    'https://duckduckgo.com/?q=',
+                    'https://www.baidu.com/s?wd=',
+                ];
+                if (presetUrls.includes(searchBaseUrl)) {
+                    searchEngineSelect.value = searchBaseUrl;
+                    customUrlGroup.style.display = 'none';
+                } else {
+                    searchEngineSelect.value = 'custom';
+                    customUrlGroup.style.display = 'flex';
+                    customSearchUrl.value = searchBaseUrl;
+                }
+                const newurl = searchBaseUrl + quesParam;
+                console.log('跳转到搜索结果:', newurl);
+                window.location.href = newurl;
+                return;
+            }
+            
+            function openDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(STORE_NAME)) {
+                            db.createObjectStore(STORE_NAME);
+                        }
+                    };
+                    request.onsuccess = (event) => resolve(event.target.result);
+                    request.onerror = (event) => reject(event.target.error);
+                });
+            }
+
+            async function saveBgImageToDB(dataUrl) {
+                try {
+                    const db = await openDB();
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    const store = tx.objectStore(STORE_NAME);
+                    const blob = dataURLtoBlob(dataUrl);
+                    store.put(blob, IMAGE_KEY);
+                    return new Promise((resolve, reject) => {
+                        tx.oncomplete = () => resolve();
+                        tx.onerror = (e) => reject(e.target.error);
+                    });
+                } catch (error) {
+                    console.warn('IndexedDB 存储失败，回退到内存:', error);
+                    bgImageDataUrl = dataUrl;
+                    applyBackgroundImage();
+                    analyzeBackgroundBrightness();
+                    showToast('背景图保存失败');
+                    throw error;
+                }
+            }
+
+            async function loadBgImageFromDB() {
+                try {
+                    const db = await openDB();
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const request = store.get(IMAGE_KEY);
+                    return new Promise((resolve, reject) => {
+                        request.onsuccess = (event) => {
+                            const result = event.target.result;
+                            if (result instanceof Blob) {
+                                const reader = new FileReader();
+                                reader.onload = () => resolve(reader.result);
+                                reader.onerror = () => reject(new Error('读取 Blob 失败'));
+                                reader.readAsDataURL(result);
+                            } else {
+                                resolve(null);
+                            }
+                        };
+                        request.onerror = (e) => reject(e.target.error);
+                    });
+                } catch (error) {
+                    console.warn('IndexedDB 读取失败:', error);
+                    return null;
+                }
+            }
+
+            async function clearBgImageFromDB() {
+                try {
+                    const db = await openDB();
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    const store = tx.objectStore(STORE_NAME);
+                    store.delete(IMAGE_KEY);
+                    return new Promise((resolve, reject) => {
+                        tx.oncomplete = () => resolve();
+                        tx.onerror = (e) => reject(e.target.error);
+                    });
+                } catch (error) {
+                    console.warn('清除 IndexedDB 图片失败:', error);
+                }
+            }
+
+            function dataURLtoBlob(dataurl) {
+                const arr = dataurl.split(',');
+                const mime = arr[0].match(/:(.*?);/)[1];
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                return new Blob([u8arr], { type: mime });
+            }
+
+            // ============ Toast ============
+            let toastTimer = null;
+            function showToast(msg, duration = 2200) {
+                if (toastTimer) clearTimeout(toastTimer);
+                toast.textContent = msg;
+                toast.classList.add('show');
+                toastTimer = setTimeout(() => {
+                    toast.classList.remove('show');
+                    toastTimer = null;
+                }, duration);
+            }
+
+            // ============ 设置面板 ============
+            function openSettings() {
+                settingsOpen = true;
+                settingsPanel.classList.add('open');
+                overlay.classList.add('visible');
+                settingsToggle.classList.add('active');
+            }
+
+            function closeSettings() {
+                settingsOpen = false;
+                settingsPanel.classList.remove('open');
+                overlay.classList.remove('visible');
+                settingsToggle.classList.remove('active');
+            }
+
+            function toggleSettings() {
+                settingsOpen ? closeSettings() : openSettings();
+            }
+
+            settingsToggle.addEventListener('click', toggleSettings);
+            overlay.addEventListener('click', closeSettings);
+            settingsCloseBtn.addEventListener('click', closeSettings);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && settingsOpen) closeSettings();
+            });
+
+            // ============ 搜索引擎设置 ============
+            function updateSearchEngineUI() {
+                const presetUrls = [
+                    'https://www.google.com/search?q=',
+                    'https://www.bing.com/search?q=',
+                    'https://duckduckgo.com/?q=',
+                    'https://www.baidu.com/s?wd=',
+                ];
+                const val = searchEngineSelect.value;
+                if (val === 'custom') {
+                    customUrlGroup.style.display = 'flex';
+                    customSearchUrl.value = searchBaseUrl;
+                } else if (presetUrls.includes(val)) {
+                    customUrlGroup.style.display = 'none';
+                    searchBaseUrl = val;
+                } else {
+                    if (!presetUrls.includes(val) && val) {
+                        searchEngineSelect.value = 'custom';
+                        customUrlGroup.style.display = 'flex';
+                        customSearchUrl.value = val;
+                        searchBaseUrl = val;
+                    }
+                }
+                saveSettings();
+            }
+
+            searchEngineSelect.addEventListener('change', () => {
+                const val = searchEngineSelect.value;
+                if (val === 'custom') {
+                    customUrlGroup.style.display = 'flex';
+                    searchBaseUrl = customSearchUrl.value || 'https://www.google.com/search?q=';
+                    customSearchUrl.focus();
+                } else {
+                    customUrlGroup.style.display = 'none';
+                    searchBaseUrl = val;
+                }
+                saveSettings();
+                showToast('搜索引擎已更新');
+            });
+
+            customSearchUrl.addEventListener('input', () => {
+                if (searchEngineSelect.value === 'custom') {
+                    searchBaseUrl = customSearchUrl.value;
+                    saveSettings();
+                }
+            });
+            customSearchUrl.addEventListener('blur', () => {
+                if (searchEngineSelect.value === 'custom' && customSearchUrl.value) {
+                    searchBaseUrl = customSearchUrl.value;
+                    saveSettings();
+                }
+            });
+
+            // ============ 背景图片处理 ============
+            bgBrowseBtn.addEventListener('click', () => bgFileInput.click());
+
+            bgFileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!file.type.startsWith('image/')) {
+                    showToast('请选择图片文件');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = async (ev) => {
+                    compressImage(ev.target.result, 3840, 0.7, async (compressedDataUrl) => {
+                        bgImageDataUrl = compressedDataUrl;
+                        applyBackgroundImage();
+                        analyzeBackgroundBrightness();
+                        try {
+                            await saveBgImageToDB(compressedDataUrl);
+                            saveSettings();
+                            showToast('背景图像已保存');
+                        } catch (err) {}
+                    });
+                };
+                reader.readAsDataURL(file);
+                bgFileInput.value = '';
+            });
+
+            bgClearBtn.addEventListener('click', async () => {
+                bgImageDataUrl = null;
+                applyBackgroundImage();
+                analyzeBackgroundBrightness();
+                await clearBgImageFromDB();
+                saveSettings();
+                showToast('背景图像已清除');
+            });
+
+            function compressImage(dataUrl, maxWidth, quality, callback) {
+                const img = new Image();
+                img.onload = () => {
+                    let w = img.width, h = img.height;
+                    if (w > maxWidth) {
+                        h = Math.round(h * (maxWidth / w));
+                        w = maxWidth;
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    const compressed = canvas.toDataURL('image/jpeg', quality);
+                    callback(compressed);
+                };
+                img.onerror = () => callback(dataUrl);
+                img.src = dataUrl;
+            }
+
+            function applyBackgroundImage() {
+                const root = document.documentElement.style;
+                if (bgImageDataUrl) {
+                    root.setProperty('--bg-image', `url(${bgImageDataUrl})`);
+                    bgImageLayer.classList.add('visible');
+                } else {
+                    root.setProperty('--bg-image', 'none');
+                    bgImageLayer.classList.remove('visible');
+                }
+                root.setProperty('--bg-size', bgSize);
+                root.setProperty('--bg-repeat', bgRepeat);
+                root.setProperty('--bg-position', bgPosition);
+                root.setProperty('--bg-blur', `${bgBlur}px`);
+                root.setProperty('--bg-brightness', bgBrightness);
+                blurValueLabel.textContent = `${bgBlur}px`;
+            }
+
+            bgSizeSelect.addEventListener('change', () => {
+                const val = bgSizeSelect.value;
+                switch (val) {
+                    case 'cover': bgSize='cover'; bgRepeat='no-repeat'; bgPosition='center'; break;
+                    case 'contain': bgSize='contain'; bgRepeat='no-repeat'; bgPosition='center'; break;
+                    case 'stretch': bgSize='100% 100%'; bgRepeat='no-repeat'; bgPosition='center'; break;
+                    case 'tile': bgSize='auto'; bgRepeat='repeat'; bgPosition='top left'; break;
+                    case 'center': bgSize='auto'; bgRepeat='no-repeat'; bgPosition='center'; break;
+                    default: bgSize='cover'; bgRepeat='no-repeat'; bgPosition='center';
+                }
+                applyBackgroundImage();
+                saveSettings();
+                analyzeBackgroundBrightness();
+                showToast('排布方式已更新');
+            });
+
+            bgBlurSlider.addEventListener('input', () => {
+                bgBlur = parseInt(bgBlurSlider.value);
+                applyBackgroundImage();
+                saveSettings();
+            });
+            bgBlurSlider.addEventListener('change', () => showToast(`模糊度: ${bgBlur}px`));
+
+            bgBrightnessSlider.addEventListener('input', () => {
+                bgBrightness = parseFloat(bgBrightnessSlider.value);
+                applyBackgroundImage();
+                saveSettings();
+            });
+            bgBrightnessSlider.addEventListener('change', () => showToast(`亮度: ${Math.round(bgBrightness*100)}%`));
+
+            // ============ 背景亮度分析 (精准采样搜索框区域) ============
+            function drawBackgroundOnCanvas(ctx, img, canvasW, canvasH) {
+                const imgW = img.width;
+                const imgH = img.height;
+                ctx.clearRect(0, 0, canvasW, canvasH);
+                if (bgRepeat === 'repeat') {
+                    const pattern = ctx.createPattern(img, 'repeat');
+                    ctx.fillStyle = pattern;
+                    ctx.fillRect(0, 0, canvasW, canvasH);
+                    return;
+                }
+                let drawW, drawH, startX, startY;
+                if (bgSize === 'cover') {
+                    const scale = Math.max(canvasW / imgW, canvasH / imgH);
+                    drawW = imgW * scale;
+                    drawH = imgH * scale;
+                    startX = (canvasW - drawW) / 2;
+                    startY = (canvasH - drawH) / 2;
+                } else if (bgSize === 'contain') {
+                    const scale = Math.min(canvasW / imgW, canvasH / imgH);
+                    drawW = imgW * scale;
+                    drawH = imgH * scale;
+                    startX = (canvasW - drawW) / 2;
+                    startY = (canvasH - drawH) / 2;
+                } else if (bgSize === '100% 100%') {
+                    drawW = canvasW;
+                    drawH = canvasH;
+                    startX = 0;
+                    startY = 0;
+                } else {
+                    drawW = imgW;
+                    drawH = imgH;
+                    if (bgPosition === 'center') {
+                        startX = (canvasW - drawW) / 2;
+                        startY = (canvasH - drawH) / 2;
+                    } else {
+                        startX = 0;
+                        startY = 0;
+                    }
+                }
+                ctx.drawImage(img, startX, startY, drawW, drawH);
+            }
+
+            function analyzeBackgroundBrightness() {
+                if (!bgImageDataUrl) {
+                    averageBgBrightness = 0.35;
+                    applyTextAdaptation();
+                    return;
+                }
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        const rect = searchCard.getBoundingClientRect();
+                        const canvas = document.createElement('canvas');
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                        const ctx = canvas.getContext('2d');
+                        drawBackgroundOnCanvas(ctx, img, canvas.width, canvas.height);
+
+                        // 采样搜索框内部区域（留出边距避免边缘干扰）
+                        const margin = 4;
+                        const sx = Math.max(0, rect.left + margin);
+                        const sy = Math.max(0, rect.top + margin);
+                        const sw = Math.min(rect.width - margin * 2, canvas.width - sx);
+                        const sh = Math.min(rect.height - margin * 2, canvas.height - sy);
+                        if (sw <= 0 || sh <= 0) {
+                            averageBgBrightness = 0.5;
+                            applyTextAdaptation();
+                            return;
+                        }
+                        const imageData = ctx.getImageData(sx, sy, sw, sh);
+                        const data = imageData.data;
+                        let totalLuminance = 0;
+                        let count = 0;
+                        for (let i = 0; i < data.length; i += 4) {
+                            const r = data[i] / 255;
+                            const g = data[i + 1] / 255;
+                            const b = data[i + 2] / 255;
+                            totalLuminance += 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                            count++;
+                        }
+                        const rawBrightness = count > 0 ? totalLuminance / count : 0.5;
+                        // 模拟毛玻璃增亮效果，并应用用户设置的亮度因子
+                        const glassBoost = 0.08;
+                        averageBgBrightness = Math.max(0, Math.min(1, rawBrightness * bgBrightness + glassBoost));
+                    } catch (e) {
+                        averageBgBrightness = 0.5;
+                    }
+                    applyTextAdaptation();
+                };
+                img.onerror = () => {
+                    averageBgBrightness = 0.5;
+                    applyTextAdaptation();
+                };
+                img.src = bgImageDataUrl;
+            }
+
+            function applyTextAdaptation() {
+                const root = document.documentElement.style;
+                // 更灵敏的阈值：<0.35 浅色文字，>0.45 深色文字，中间为中等深色
+                if (averageBgBrightness < 0.35) {
+                    root.setProperty('--text-primary', '#f5f5f7');
+                    root.setProperty('--text-secondary', '#b0b0b8');
+                    root.setProperty('--text-shadow', '0 1px 3px rgba(0,0,0,0.3)');
+                    root.setProperty('--accent', '#5ea8ff');
+                } else if (averageBgBrightness > 0.45) {
+                    root.setProperty('--text-primary', '#1d1d1f');
+                    root.setProperty('--text-secondary', '#6e6e73');
+                    root.setProperty('--text-shadow', '0 1px 2px rgba(255,255,255,0.3)');
+                    root.setProperty('--accent', '#0071e3');
+                } else {
+                    root.setProperty('--text-primary', '#2a2a2e');
+                    root.setProperty('--text-secondary', '#7a7a80');
+                    root.setProperty('--text-shadow', '0 1px 2px rgba(255,255,255,0.25)');
+                    root.setProperty('--accent', '#0071e3');
+                }
+            }
+
+            // ============ 搜索功能 ============
+            function performSearch() {
+                const query = searchInput.value.trim();
+                if (!query) {
+                    searchCard.style.transform = 'translateX(-4px)';
+                    setTimeout(() => {
+                        searchCard.style.transform = 'translateX(4px)';
+                        setTimeout(() => {
+                            searchCard.style.transform = 'translateX(-2px)';
+                            setTimeout(() => {
+                                searchCard.style.transform = 'translateY(0) scale(1)';
+                            }, 60);
+                        }, 80);
+                    }, 80);
+                    searchInput.focus();
+                    return;
+                }
+
+                let targetUrl;
+                const urlPattern = /^(https?:\/\/|www\.)[^\s]+(\.[^\s]+)+/i;
+                const domainPattern = /^[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(\/.*)?$/i;
+                if (urlPattern.test(query)) {
+                    targetUrl = query.startsWith('http') ? query : 'https://' + query;
+                } else if (domainPattern.test(query)) {
+                    targetUrl = 'https://' + query;
+                } else {
+                    const base = searchBaseUrl;
+                    targetUrl = base.includes('{q}') ? base.replace('{q}', encodeURIComponent(query)) : base + encodeURIComponent(query);
+                }
+
+                searchBtn.style.transform = 'scale(0.85)';
+                setTimeout(() => {
+                    searchBtn.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        searchBtn.style.transform = 'scale(1)';
+                    }, 150);
+                }, 100);
+                setTimeout(() => { window.location.href = targetUrl; }, 250);
+            }
+
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); performSearch(); }
+            });
+            searchCard.addEventListener('click', (e) => {
+                if (e.target !== searchBtn && !searchBtn.contains(e.target)) searchInput.focus();
+            });
+
+            // ============ WebGL 动态背景 ============
+            function initWebGLBackground() {
+                const canvas = webglCanvas;
+                let gl;
+                try { gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl'); }
+                catch(e) { gl = null; }
+                if (!gl) { initCanvas2DBackground(canvas); return; }
+
+                const vertexShaderSource = `
+                    attribute vec2 a_position;
+                    varying vec2 v_uv;
+                    void main() {
+                        v_uv = a_position * 0.5 + 0.5;
+                        gl_Position = vec4(a_position, 0.0, 1.0);
+                    }
+                `;
+                const fragmentShaderSource = `
+                    precision highp float;
+                    varying vec2 v_uv;
+                    uniform float u_time;
+                    uniform vec2 u_resolution;
+
+                    float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+                    float noise(vec2 p) {
+                        vec2 i = floor(p);
+                        vec2 f = fract(p);
+                        f = f * f * (3.0 - 2.0 * f);
+                        float a = hash(i);
+                        float b = hash(i + vec2(1.0, 0.0));
+                        float c = hash(i + vec2(0.0, 1.0));
+                        float d = hash(i + vec2(1.0, 1.0));
+                        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+                    }
+                    float fbm(vec2 p) {
+                        float value = 0.0;
+                        float amplitude = 0.5;
+                        float frequency = 1.0;
+                        for (int i = 0; i < 4; i++) {
+                            value += amplitude * noise(p * frequency);
+                            frequency *= 2.0;
+                            amplitude *= 0.5;
+                        }
+                        return value;
+                    }
+
+                    void main() {
+                        vec2 uv = v_uv;
+                        float aspect = u_resolution.x / u_resolution.y;
+                        vec2 centered = uv - 0.5;
+                        centered.x *= aspect;
+                        float t = u_time * 0.15;
+                        vec2 spot1 = vec2(sin(t*0.7)*0.35, cos(t*0.5)*0.3);
+                        vec2 spot2 = vec2(cos(t*0.6+1.5)*0.4, sin(t*0.8+0.8)*0.35);
+                        vec2 spot3 = vec2(sin(t*0.9+3.0)*0.3, cos(t*0.55+2.0)*0.4);
+                        vec2 spot4 = vec2(cos(t*0.4+5.0)*0.45, sin(t*0.65+4.0)*0.3);
+                        float d1 = length(centered - spot1);
+                        float d2 = length(centered - spot2);
+                        float d3 = length(centered - spot3);
+                        float d4 = length(centered - spot4);
+                        float glow1 = exp(-d1*3.5)*0.55;
+                        float glow2 = exp(-d2*4.0)*0.45;
+                        float glow3 = exp(-d3*3.8)*0.5;
+                        float glow4 = exp(-d4*3.2)*0.4;
+                        vec3 color1 = vec3(0.45,0.55,0.9);
+                        vec3 color2 = vec3(0.6,0.4,0.75);
+                        vec3 color3 = vec3(0.35,0.6,0.85);
+                        vec3 color4 = vec3(0.55,0.45,0.7);
+                        vec3 col = vec3(0.0);
+                        col += glow1 * color1;
+                        col += glow2 * color2;
+                        col += glow3 * color3;
+                        col += glow4 * color4;
+                        float n = fbm(uv*6.0 + t*0.3)*0.06;
+                        col += n;
+                        col = mix(vec3(0.06,0.06,0.12), col, 0.85);
+                        float vignette = 1.0 - length(centered)*0.5;
+                        col *= vignette;
+                        col = max(col, vec3(0.03));
+                        gl_FragColor = vec4(col, 1.0);
+                    }
+                `;
+
+                function createShader(gl, type, source) {
+                    const shader = gl.createShader(type);
+                    gl.shaderSource(shader, source);
+                    gl.compileShader(shader);
+                    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                        console.warn('Shader error:', gl.getShaderInfoLog(shader));
+                        gl.deleteShader(shader);
+                        return null;
+                    }
+                    return shader;
+                }
+
+                const vertShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+                const fragShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+                if (!vertShader || !fragShader) { initCanvas2DBackground(canvas); return; }
+
+                const program = gl.createProgram();
+                gl.attachShader(program, vertShader);
+                gl.attachShader(program, fragShader);
+                gl.linkProgram(program);
+                if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                    console.warn('Link error:', gl.getProgramInfoLog(program));
+                    initCanvas2DBackground(canvas);
+                    return;
+                }
+
+                const positionBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
+                const positionLocation = gl.getAttribLocation(program, 'a_position');
+                const timeLocation = gl.getUniformLocation(program, 'u_time');
+                const resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
+
+                gl.useProgram(program);
+                gl.enableVertexAttribArray(positionLocation);
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+                function resize() {
+                    canvas.width = window.innerWidth * Math.min(window.devicePixelRatio||1, 2);
+                    canvas.height = window.innerHeight * Math.min(window.devicePixelRatio||1, 2);
+                    canvas.style.width = window.innerWidth + 'px';
+                    canvas.style.height = window.innerHeight + 'px';
+                    gl.viewport(0, 0, canvas.width, canvas.height);
+                }
+
+                let startTime = performance.now();
+                let animFrameId;
+                function render(timestamp) {
+                    webglCanvas.style.opacity = bgImageDataUrl ? '0.3' : '1';
+                    resize();
+                    gl.useProgram(program);
+                    gl.uniform1f(timeLocation, (timestamp - startTime)/1000);
+                    gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
+                    animFrameId = requestAnimationFrame(render);
+                }
+                resize();
+                animFrameId = requestAnimationFrame(render);
+                webglCanvas._cleanup = () => {
+                    if (animFrameId) cancelAnimationFrame(animFrameId);
+                    gl.deleteProgram(program);
+                    gl.deleteShader(vertShader);
+                    gl.deleteShader(fragShader);
+                    gl.deleteBuffer(positionBuffer);
+                };
+                window.addEventListener('resize', resize);
+            }
+
+            function initCanvas2DBackground(canvas) {
+                const ctx = canvas.getContext('2d');
+                let animFrameId, time = 0;
+                function resize() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                    canvas.style.width = window.innerWidth + 'px';
+                    canvas.style.height = window.innerHeight + 'px';
+                }
+                function render() {
+                    webglCanvas.style.opacity = bgImageDataUrl ? '0.3' : '1';
+                    resize();
+                    time += 0.008;
+                    const w = canvas.width, h = canvas.height;
+                    ctx.clearRect(0,0,w,h);
+                    const baseGrad = ctx.createRadialGradient(w*0.3, h*0.4, 0, w*0.5, h*0.5, Math.max(w,h)*0.7);
+                    baseGrad.addColorStop(0, '#1a1a35');
+                    baseGrad.addColorStop(0.5, '#121225');
+                    baseGrad.addColorStop(1, '#0a0a18');
+                    ctx.fillStyle = baseGrad;
+                    ctx.fillRect(0,0,w,h);
+                    const spots = [
+                        { x: w*0.35+Math.sin(time*0.7)*w*0.2, y: h*0.4+Math.cos(time*0.5)*h*0.15, r: Math.min(w,h)*0.35, color: 'rgba(80,100,200,0.12)' },
+                        { x: w*0.6+Math.cos(time*0.6)*w*0.25, y: h*0.45+Math.sin(time*0.8)*h*0.2, r: Math.min(w,h)*0.3, color: 'rgba(120,80,180,0.1)' },
+                        { x: w*0.45+Math.sin(time*0.9)*w*0.18, y: h*0.35+Math.cos(time*0.55)*h*0.22, r: Math.min(w,h)*0.28, color: 'rgba(60,140,200,0.11)' }
+                    ];
+                    spots.forEach(spot => {
+                        const grad = ctx.createRadialGradient(spot.x, spot.y, 0, spot.x, spot.y, spot.r);
+                        grad.addColorStop(0, spot.color);
+                        grad.addColorStop(0.5, spot.color.replace(/[\d.]+\)$/, '0.04)'));
+                        grad.addColorStop(1, 'transparent');
+                        ctx.fillStyle = grad;
+                        ctx.fillRect(0,0,w,h);
+                    });
+                    animFrameId = requestAnimationFrame(render);
+                }
+                resize();
+                animFrameId = requestAnimationFrame(render);
+                canvas._cleanup = () => { if (animFrameId) cancelAnimationFrame(animFrameId); };
+                window.addEventListener('resize', resize);
+            }
+
+            // ============ 持久化存储 ============
+            function saveSettings() {
+                const meta = {
+                    searchBaseUrl: searchBaseUrl,
+                    bgSize: bgSize,
+                    bgRepeat: bgRepeat,
+                    bgPosition: bgPosition,
+                    bgBlur: bgBlur,
+                    bgBrightness: bgBrightness,
+                    hasBgImage: !!bgImageDataUrl,
+                };
+                try {
+                    localStorage.setItem('liquid-glass-settings', JSON.stringify(meta));
+                } catch (e) {
+                    console.warn('无法保存设置', e);
+                }
+            }
+
+            function loadSettings() {
+                try {
+                    const metaStr = localStorage.getItem('liquid-glass-settings');
+                    if (metaStr) {
+                        const meta = JSON.parse(metaStr);
+                        searchBaseUrl = meta.searchBaseUrl || 'https://www.google.com/search?q=';
+                        bgSize = meta.bgSize || 'cover';
+                        bgRepeat = meta.bgRepeat || 'no-repeat';
+                        bgPosition = meta.bgPosition || 'center';
+                        bgBlur = meta.bgBlur || 0;
+                        bgBrightness = meta.bgBrightness || 1;
+                        return meta.hasBgImage === true;
+                    }
+                } catch (e) {
+                    console.warn('加载设置失败', e);
+                }
+                return false;
+            }
+
+            async function applyLoadedSettings() {
+                const hasBg = loadSettings();
+                const presetUrls = [
+                    'https://www.google.com/search?q=',
+                    'https://www.bing.com/search?q=',
+                    'https://duckduckgo.com/?q=',
+                    'https://www.baidu.com/s?wd=',
+                ];
+                if (presetUrls.includes(searchBaseUrl)) {
+                    searchEngineSelect.value = searchBaseUrl;
+                    customUrlGroup.style.display = 'none';
+                } else {
+                    searchEngineSelect.value = 'custom';
+                    customUrlGroup.style.display = 'flex';
+                    customSearchUrl.value = searchBaseUrl;
+                }
+                if (bgSize === 'cover' && bgRepeat === 'no-repeat' && bgPosition === 'center') bgSizeSelect.value = 'cover';
+                else if (bgSize === 'contain' && bgRepeat === 'no-repeat' && bgPosition === 'center') bgSizeSelect.value = 'contain';
+                else if (bgSize === '100% 100%') bgSizeSelect.value = 'stretch';
+                else if (bgRepeat === 'repeat') bgSizeSelect.value = 'tile';
+                else if (bgSize === 'auto' && bgRepeat === 'no-repeat' && bgPosition === 'center') bgSizeSelect.value = 'center';
+                else bgSizeSelect.value = 'cover';
+
+                bgBlurSlider.value = bgBlur;
+                bgBrightnessSlider.value = bgBrightness;
+                blurValueLabel.textContent = `${bgBlur}px`;
+
+                if (hasBg) {
+                    try {
+                        const dataUrl = await loadBgImageFromDB();
+                        if (dataUrl) {
+                            bgImageDataUrl = dataUrl;
+                        } else {
+                            bgImageDataUrl = null;
+                        }
+                    } catch (e) {
+                        bgImageDataUrl = null;
+                    }
+                } else {
+                    bgImageDataUrl = null;
+                }
+                applyBackgroundImage();
+                setTimeout(analyzeBackgroundBrightness, 300);
+            }
+
+            // 窗口大小改变时重新采样
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(analyzeBackgroundBrightness, 200);
+            });
+
+            // 拖拽上传
+            document.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); });
+            document.addEventListener('dragenter', e => { e.preventDefault(); e.stopPropagation(); });
+            document.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = async (ev) => {
+                        compressImage(ev.target.result, 3840, 0.7, async (compressedDataUrl) => {
+                            bgImageDataUrl = compressedDataUrl;
+                            applyBackgroundImage();
+                            analyzeBackgroundBrightness();
+                            try {
+                                await saveBgImageToDB(compressedDataUrl);
+                                saveSettings();
+                                showToast('背景图像已更新（拖拽上传）');
+                            } catch (err) {}
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // 快捷键
+            document.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+                if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+                    e.preventDefault();
+                    toggleSettings();
+                }
+            });
+
+            // 初始化
+            async function init() {
+                await applyLoadedSettings();
+                initWebGLBackground();
+                setTimeout(() => searchInput.focus(), 600);
+            }
+
+            init();
+
+            window.addEventListener('beforeunload', () => {
+                if (webglCanvas._cleanup) webglCanvas._cleanup();
+            });
+            
+        })();
+    </script>
+</body>
+</html>
