@@ -1,0 +1,17 @@
+#LAYOUT模板，所有STRING类型的可以填入NULL代表空
+
+#产品名称
+NAME = Saturn Engine
+#产品图标路径（有就应用到网站的图标上）
+ICON = NULL
+#产品一级描述
+DESCRIPTION = Saturn Engine is an open-source high-performance game engine that supports multi-platform development, providing rich features and tools to help developers quickly create high-quality games.
+
+#产品详情描述（多段落，字符串要用引号包住） 如下格式：{"str1","str2"}，支持markdown语法，以及支持引用参数
+#如果需要引用参数，直接在字符串中使用%参数名%即可，
+#也有特殊布局函数，如下
+#<IMG SIZE= (-1,-1), ZOOM=NONE>PATHTOIMAGE</IMG>：插入图片，参数为图片路径，可以设置图片大小SIZE，ZOOM=NONE表示不缩放，ZOOM=FIT表示按比例缩放，ZOOM=FILL表示填充
+DETAILS = { "# Saturn Engine Details","Saturn Engine is an open-source high-performance game engine that supports multi-platform development, providing rich features and tools to help developers quickly create high-quality games.", "Owned by lofusoft, currently in development. Everyone is welcome to participate in development and contribute code.", "Saturn Engine supports multiple programming languages, including C++ and C#, with a flexible C backend and C# frontend, achieving high performance while ensuring cross-platform compatibility.","SaturnEngine Repository [View Code](%ResourceURL%)" }
+
+#使用参数声明，传入格式如下：{<"KEY1","VALUE1">,<"KEY2","VALUE2">  }，
+RESOURCE = {<"ResourceURL","https://github.com/losment886/SaturnEngine">}

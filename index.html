@@ -8,15 +8,15 @@
         const savedLang = localStorage.getItem('chosenLanguage');
         const userLang = savedLang || navigator.language || navigator.userLanguage;
         const urlParams = new URLSearchParams(window.location.search);
-        const herfParam = urlParams.get('herf');
+        const hrefParam = urlParams.get('href');
         var loc = './';
         if (userLang.startsWith('zh')) {
             loc += 'zh/';
         } else {
             loc += 'en/';
         }
-        if (herfParam) {
-            loc += herfParam + '.html';
+        if (hrefParam) {
+            loc += hrefParam + '.html';
         } else {
             loc += 'index.html';
         }

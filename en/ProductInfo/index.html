@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../res/main.css" />
+    <link rel="icon" type="image/png" href="../../res/logo_alpha.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <title>lofusoft - Product Details</title>
+    <style>
+        .product-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        .product-container h1 {
+            text-align: center;
+        }
+        .product-container .description {
+            text-align: center;
+            font-size: 1.1rem;
+            color: var(--pico-muted-color, #666);
+            margin-bottom: 2rem;
+        }
+        .product-details {
+            line-height: 1.8;
+        }
+        .product-details img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 1.5rem auto;
+        }
+        .product-details code {
+            background: var(--pico-code-background, #f4f4f4);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .product-details pre {
+            background: var(--pico-code-background, #f4f4f4);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+        .error-message {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--pico-muted-color, #666);
+        }
+        .error-message h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .loading {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--pico-muted-color, #666);
+        }
+    </style>
+</head>
+<body>
+    <div id="header"></div>
+    <main class="content">
+        <div class="product-container" id="product-content">
+            <div class="loading">Loading...</div>
+        </div>
+    </main>
+    <div id="footer"></div>
+
+    <script src="../../res/general.js"></script>
+    <script>
+        // ========== Markdown Inline Rendering ==========
+        function renderMarkdown(text) {
+            let html = text
+                .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;height:auto;margin:1rem auto;display:block;">')
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                .replace(/~~([^~]+)~~/g, '<del>$1</del>');
+            return html;
+        }
+
+        // ========== Markdown Block Rendering ==========
+        function renderMarkdownBlock(text) {
+            text = replaceParams(text, currentResources);
+            text = text.replace(/<IMG\s+(?:SIZE\s*=\s*([^,>]+))?(?:\s*,\s*ZOOM\s*=\s*(\w+))?\s*>(.*?)<\/IMG>/gi, renderImgTag);
+
+            const lines = text.split('\n');
+            let html = '';
+            let inList = false;
+
+            for (let i = 0; i < lines.length; i++) {
+                const trimmed = lines[i].trim();
+
+                if (trimmed === '') {
+                    if (inList) { html += '</ul>\n'; inList = false; }
+                    continue;
+                }
+
+                const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
+                if (headingMatch) {
+                    if (inList) { html += '</ul>\n'; inList = false; }
+                    html += `<h${headingMatch[1].length}>${renderMarkdown(headingMatch[2])}</h${headingMatch[1].length}>\n`;
+                    continue;
+                }
+
+                if (/^[-*]{3,}$/.test(trimmed)) {
+                    if (inList) { html += '</ul>\n'; inList = false; }
+                    html += '<hr>\n';
+                    continue;
+                }
+
+                if (trimmed.startsWith('> ')) {
+                    if (inList) { html += '</ul>\n'; inList = false; }
+                    html += `<blockquote>${renderMarkdown(trimmed.substring(2))}</blockquote>\n`;
+                    continue;
+                }
+
+                if (trimmed.match(/^[-*]\s+/)) {
+                    if (!inList) { html += '<ul>\n'; inList = true; }
+                    html += `<li>${renderMarkdown(trimmed.replace(/^[-*]\s+/, ''))}</li>\n`;
+                    continue;
+                }
+
+                if (trimmed.match(/^\d+\.\s+/)) {
+                    if (!inList) { html += '<ol>\n'; inList = true; }
+                    html += `<li>${renderMarkdown(trimmed.replace(/^\d+\.\s+/, ''))}</li>\n`;
+                    continue;
+                }
+
+                if (inList) { html += '</ul>\n'; inList = false; }
+                html += `<p>${renderMarkdown(trimmed)}</p>\n`;
+            }
+
+            if (inList) html += '</ul>\n';
+            return html.trim();
+        }
+
+        // ========== IMG Tag Parsing ==========
+        function renderImgTag(match, sizeStr, zoom, path) {
+            let style = 'max-width:100%;height:auto;display:block;margin:1.5rem auto;';
+            if (zoom === 'FIT') style += 'object-fit:contain;';
+            else if (zoom === 'FILL') style += 'object-fit:cover;width:100%;height:400px;';
+
+            if (sizeStr) {
+                const m = sizeStr.match(/\(?\s*(-?\d+)\s*,\s*(-?\d+)\s*\)?/);
+                if (m) {
+                    if (parseInt(m[1]) > 0) style += `width:${parseInt(m[1])}px;`;
+                    if (parseInt(m[2]) > 0) style += `height:${parseInt(m[2])}px;`;
+                }
+            }
+
+            let src = path.trim();
+            if (!src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('/')) {
+                src = '../../' + src;
+            } else if (src.startsWith('/')) {
+                src = '../..' + src;
+            }
+            return `<img src="${src}" style="${style}" loading="lazy">`;
+        }
+
+        // ========== Parse DETAILS Array ==========
+        function parseDetailsArray(text) {
+            text = text.trim();
+            if (!text.startsWith('{') || !text.endsWith('}')) return [text];
+            const inner = text.slice(1, -1).trim();
+            if (inner === '') return [];
+
+            const items = [];
+            let current = '', inString = false, escape = false;
+
+            for (let i = 0; i < inner.length; i++) {
+                const ch = inner[i];
+                if (escape) { current += ch; escape = false; continue; }
+                if (ch === '\\') { escape = true; continue; }
+                if (ch === '"') { inString = !inString; continue; }
+                if (ch === ',' && !inString) { items.push(current.trim()); current = ''; continue; }
+                current += ch;
+            }
+            if (current.trim()) items.push(current.trim());
+            return items;
+        }
+
+        // ========== Parse RESOURCE Array ==========
+        function parseResourceArray(text) {
+            text = text.trim();
+            if (!text.startsWith('{') || !text.endsWith('}')) return {};
+            const inner = text.slice(1, -1).trim();
+            if (inner === '') return {};
+
+            const resources = {};
+            let depth = 0, current = '';
+
+            for (let i = 0; i < inner.length; i++) {
+                const ch = inner[i];
+                if (ch === '<') { if (depth === 0) current = ''; depth++; }
+                else if (ch === '>') {
+                    depth--;
+                    if (depth === 0) {
+                        const pair = current.match(/"([^"]*)"\s*,\s*"([^"]*)"/);
+                        if (pair) resources[pair[1]] = pair[2];
+                        current = '';
+                    }
+                } else if (depth > 0) { current += ch; }
+            }
+            return resources;
+        }
+
+        // ========== Parameter Replacement ==========
+        function replaceParams(text, params) {
+            return text.replace(/%([^%]+)%/g, (match, key) => params[key] !== undefined ? params[key] : match);
+        }
+
+        // ========== Parse Layout File ==========
+        function parseLayout(text) {
+            const lines = text.split('\n');
+            const result = { name: '', icon: null, description: '', details: [], resources: {} };
+            let detailsRaw = '', resourcesRaw = '';
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('#') || trimmed === '') continue;
+
+                let m = trimmed.match(/^NAME\s*=\s*(.+)$/);
+                if (m) { result.name = m[1].trim() === 'NULL' ? '' : m[1].trim(); continue; }
+
+                m = trimmed.match(/^ICON\s*=\s*(.+)$/);
+                if (m) { result.icon = m[1].trim() === 'NULL' ? null : m[1].trim(); continue; }
+
+                m = trimmed.match(/^DESCRIPTION\s*=\s*(.+)$/);
+                if (m) { result.description = m[1].trim() === 'NULL' ? '' : m[1].trim(); continue; }
+
+                m = trimmed.match(/^DETAILS\s*=\s*(\{.*\})$/);
+                if (m) { detailsRaw = m[1]; continue; }
+
+                m = trimmed.match(/^RESOURCE\s*=\s*(\{.*\})$/);
+                if (m) { resourcesRaw = m[1]; continue; }
+            }
+
+            if (detailsRaw) result.details = parseDetailsArray(detailsRaw);
+            if (resourcesRaw) result.resources = parseResourceArray(resourcesRaw);
+            return result;
+        }
+
+        // ========== Global Variables ==========
+        let currentResources = {};
+
+        // ========== Render Product Page ==========
+        function renderProduct(product) {
+            const container = document.getElementById('product-content');
+            currentResources = product.resources;
+
+            if (product.name) document.title = `lofusoft - ${product.name}`;
+
+            if (product.icon) {
+                let iconPath = product.icon;
+                if (!iconPath.startsWith('http://') && !iconPath.startsWith('https://') && !iconPath.startsWith('/'))
+                    iconPath = '../../' + iconPath;
+                else if (iconPath.startsWith('/'))
+                    iconPath = '../..' + iconPath;
+                const link = document.querySelector('link[rel="icon"]');
+                if (link) link.href = iconPath;
+            }
+
+            let html = `<h1>${product.name || 'Unknown Product'}</h1>`;
+            if (product.description)
+                html += `<p class="description">${renderMarkdown(product.description)}</p>`;
+
+            if (product.details && product.details.length > 0) {
+                html += '<div class="product-details">';
+                for (const detail of product.details)
+                    html += renderMarkdownBlock(detail);
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ========== Show Error ==========
+        function showError(message) {
+            document.getElementById('product-content').innerHTML =
+                `<div class="error-message"><h1>${message}</h1></div>`;
+        }
+
+        // ========== Main Flow ==========
+        async function loadProduct() {
+            const productname = new URLSearchParams(window.location.search).get('p');
+            if (!productname) { showError('Please specify a product parameter (?p=product_alias)'); return; }
+
+            try {
+                const listsResp = await fetch('./lists/pi.lists');
+                if (!listsResp.ok) throw new Error('Unable to load product list');
+                const listsData = await listsResp.text();
+
+                let productId = null;
+                for (const line of listsData.split('\n')) {
+                    const trimmed = line.trim();
+                    if (trimmed.startsWith('#') || trimmed.length <= 2) continue;
+                    const eqIdx = trimmed.indexOf('=');
+                    if (eqIdx === -1) continue;
+                    const aliases = trimmed.substring(0, eqIdx).trim().split('|').map(s => s.trim());
+                    const id = trimmed.substring(eqIdx + 1).trim();
+                    if (aliases.includes(productname)) { productId = id; break; }
+                }
+
+                if (!productId) { showError(`Product "${productname}" not found`); return; }
+
+                const layoutResp = await fetch(`./lists/${productId}.layout`);
+                if (!layoutResp.ok) throw new Error(`Unable to load product info (${productId}.layout)`);
+                renderProduct(parseLayout(await layoutResp.text()));
+
+            } catch (error) {
+                console.error('Failed to load product info:', error);
+                showError('Load failed: ' + error.message);
+            }
+        }
+
+        // ========== Wait for general.js to load header/footer ==========
+        function waitForHeader(callback) {
+            const headerDiv = document.getElementById('header');
+            if (headerDiv && headerDiv.innerHTML.trim() !== '' && headerDiv.querySelector('.header')) {
+                callback();
+                return;
+            }
+            const observer = new MutationObserver(() => {
+                if (headerDiv && headerDiv.innerHTML.trim() !== '' && headerDiv.querySelector('.header')) {
+                    observer.disconnect();
+                    setTimeout(callback, 50);
+                }
+            });
+            observer.observe(headerDiv, { childList: true, subtree: true });
+            setTimeout(() => { observer.disconnect(); callback(); }, 3000);
+        }
+
+        waitForHeader(loadProduct);
+    </script>
+</body>
+</html>

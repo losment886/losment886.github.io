@@ -1,28 +1,27 @@
 ﻿<!DOCTYPE html>
-
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="utf-8" />
-    <link rel="stylesheet" href="../res/main.css" />
-    <link rel="icon" type="image/png" href="../res/logo_alpha.png">
-    <title>lofusoft - Products</title>
-</head>
-<body>
-    <header class="header">
-        <div style="display:flex;">
-            <div style=" padding: 5px 0 0px 0;"><img src="../res/logo_alpha.png" style="width: 30px; height: 30px;" onclick="window.location.href = './index.html';" /></div>
-            <div onclick="window.location.href = './index.html';">lofusoft</div>
-            <div style="padding:0 0 0px 50px" onclick="window.location.href = './products.html';">Products</div>
-            <div style="padding:0 0 0px 20px" onclick="window.location.href = './about.html';">About</div>
-        </div>
-        <div style="margin-left: auto; padding: 0 0 0 20px;" onclick="localStorage.setItem('chosenLanguage','zh'); window.location.href = '../index.html?herf=products';">ZH-CN</div>
-    </header>
-    <h1 style="align-items: center; text-align: center;">Products</h1>
-    <h2 style="align-items: center; text-align: center;">It's still empty～</h2>
-    <footer class="footer">
-        <div>lofusoft &copy; 2026</div><div style="display:flex;"><div style="padding:0 15px">Powered by losment</div></div>
-    </footer>
-</body>
-
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="../res/main.css" />
+        <link rel="icon" type="image/png" href="../res/logo_alpha.png">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+        <title>lofusoft - Products</title>
+    </head>
+    <body>
+        <div id="header"></div>
+        <main class="content">
+            <h1 style="align-items: center; text-align: center;">Products</h1>
+            <div class="grid">
+                <article>
+                    <header>
+                        <h3>SaturnEngine</h3>
+                    </header>
+                    <p>An open-source C# cross-platform game engine, still in development</p>
+                    <footer><a href="./ProductInfo/index.html?p=SE" class="secondary">View Details</a></footer>
+                </article>
+            </div>
+        </main>
+        <div id="footer"></div>
+        <script src="../res/general.js"></script>
+    </body>
 </html>
-

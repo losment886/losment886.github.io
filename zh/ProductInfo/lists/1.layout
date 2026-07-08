@@ -1,0 +1,17 @@
+﻿#LAYOUT模板，所有STRING类型的可以填入NULL代表空
+
+#产品名称
+NAME = Saturn Engine
+#产品图标路径（有就应用到网站的图标上）
+ICON = NULL
+#产品一级描述
+DESCRIPTION = Saturn Engine是一个开源的高性能的游戏引擎，支持多平台开发，提供丰富的功能和工具，帮助开发者快速创建高质量的游戏。
+
+#产品详情描述（多段落，字符串要用引号包住） 如下格式：{"str1","str2"}，支持markdown语法，以及支持引用参数
+#如果需要引用参数，直接在字符串中使用%参数名%即可，
+#也有特殊布局函数，如下
+#<IMG SIZE= (-1,-1), ZOOM=NONE>PATHTOIMAGE</IMG>：插入图片，参数为图片路径，可以设置图片大小SIZE，ZOOM=NONE表示不缩放，ZOOM=FIT表示按比例缩放，ZOOM=FILL表示填充
+DETAILS = { "# Saturn Engine详情","Saturn  Engine是一个开源的高性能的游戏引擎，支持多平台开发，提供丰富的功能和工具，帮助开发者快速创建高质量的游戏。", "lofusoft所有，现处于开发状态，欢迎大家参与开发和贡献代码。", "Saturn Engine支持多种编程语言，包括C++、C#，采用灵活的C后端与C#前端，在实现高性能的同时兼顾跨平台。","SaturnEngine地址 [查看代码](%ResourceURL%)" }
+
+#使用参数声明，传入格式如下：{<"KEY1","VALUE1">,<"KEY2","VALUE2">  }，
+RESOURCE = {<"ResourceURL","https://github.com/losment886/SaturnEngine">}
