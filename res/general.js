@@ -144,7 +144,7 @@ Promise.all([
 }).catch(err => console.error('加载头尾失败:', err));
 
 
-function  Trn (lang)
+function Trn(lang)
 {
     localStorage.setItem('chosenLanguage',lang);
 
@@ -168,3 +168,5 @@ function  Trn (lang)
         window.location.href = '../../index.html?href=' + window.location.href.substring(window.location.href.indexOf('ProductInfo/index.html'));
     }
 }
+
+window.Trn = Trn;
