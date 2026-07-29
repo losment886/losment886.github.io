@@ -105,6 +105,32 @@ function initLayout()
     observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 }
 
+function Trn(lang)
+{
+    localStorage.setItem('chosenLanguage',lang);
+
+    if(window.location.href.indexOf('ProductInfo/index.html') < 0)
+    {
+        if(window.location.href.indexOf('index') < 0)
+        {
+            window.location.href = '../index.html?href=index.html';
+        }
+        else if(window.location.href.indexOf('about.html') < 0)
+        {
+            window.location.href = '../index.html?href=about.html';
+        }
+        else if(window.location.href.indexOf('products.html') < 0)
+        {
+            window.location.href = '../index.html?href=products.html';
+        }
+    }
+    else
+    {
+        window.location.href = '../../index.html?href=' + window.location.href.substring(window.location.href.indexOf('ProductInfo/index.html'));
+    }
+}
+
+window.Trn = Trn;
 // 自动检测路径深度并加载 header/footer
 const depth = getPathDepth();
 const prefix = getPrefix(depth);
@@ -144,29 +170,5 @@ Promise.all([
 }).catch(err => console.error('加载头尾失败:', err));
 
 
-function Trn(lang)
-{
-    localStorage.setItem('chosenLanguage',lang);
 
-    if(window.location.href.indexOf('ProductInfo/index.html') < 0)
-    {
-        if(window.location.href.indexOf('index') < 0)
-        {
-            window.location.href = '../index.html?href=index.html';
-        }
-        else if(window.location.href.indexOf('about.html') < 0)
-        {
-            window.location.href = '../index.html?href=about.html';
-        }
-        else if(window.location.href.indexOf('products.html') < 0)
-        {
-            window.location.href = '../index.html?href=products.html';
-        }
-    }
-    else
-    {
-        window.location.href = '../../index.html?href=' + window.location.href.substring(window.location.href.indexOf('ProductInfo/index.html'));
-    }
-}
 
-window.Trn = Trn;
