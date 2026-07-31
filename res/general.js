@@ -111,15 +111,15 @@ function Trn(lang)
 
     if(window.location.href.indexOf('ProductInfo/index.html') < 0)
     {
-        if(window.location.href.indexOf('index') < 0)
+        if(window.location.href.indexOf('index') >= 0)
         {
             window.location.href = '../index.html?href=index.html';
         }
-        else if(window.location.href.indexOf('about.html') < 0)
+        else if(window.location.href.indexOf('about.html') >= 0)
         {
             window.location.href = '../index.html?href=about.html';
         }
-        else if(window.location.href.indexOf('products.html') < 0)
+        else if(window.location.href.indexOf('products.html') >= 0)
         {
             window.location.href = '../index.html?href=products.html';
         }
